@@ -1,0 +1,119 @@
+datasource db {
+  provider = "sqlite"
+  // Wasp requires that the url is set to the DATABASE_URL environment variable.
+  url      = env("DATABASE_URL")
+}
+
+// Wasp requires the `prisma-client-js` generator to be present.
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+    id                Int           @id @default(autoincrement())
+    phoneNumber       String?       @unique
+    fullName          String?
+    walletBalance     Int           @default(0)
+    welcomeBonus      Int           @default(500)
+    referralCode      String?       @unique
+    referredById      Int?
+    referredBy        User?         @relation("UserReferrals", fields: [referredById], references: [id])
+    referredUsers     User[]        @relation("UserReferrals")
+    lastCheckin       DateTime?
+    role              String        @default("user")
+    isBanned          Boolean       @default(false)
+    createdAt         DateTime      @default(now())
+    investments       Investment[]
+    transactions      Transaction[]
+    bank              UserBank?
+    referralsMade     Referral[]    @relation("ReferralsMade")
+    referralsReceived Referral[]    @relation("ReferralsReceived")
+}
+
+model InvestmentPlan {
+    id           Int          @id @default(autoincrement())
+    name         String
+    carName      String
+    imageUrl     String
+    minAmount    Int
+    maxAmount    Int
+    roiPercent   Float
+    durationDays Int
+    category     String
+    isActive     Boolean      @default(true)
+    createdAt    DateTime     @default(now())
+    investments  Investment[]
+}
+
+model Investment {
+    id             Int            @id @default(autoincrement())
+    user           User           @relation(fields: [userId], references: [id])
+    userId         Int
+    plan           InvestmentPlan @relation(fields: [planId], references: [id])
+    planId         Int
+    amount         Int
+    expectedPayout Int
+    startDate      DateTime       @default(now())
+    endDate        DateTime
+    status         String         @default("active")
+    createdAt      DateTime       @default(now())
+}
+
+model Transaction {
+    id        Int      @id @default(autoincrement())
+    user      User     @relation(fields: [userId], references: [id])
+    userId    Int
+    type      String
+    amount    Int
+    method    String
+    status    String   @default("pending")
+    proofUrl  String?
+    txHash    String?
+    adminNote String?
+    createdAt DateTime @default(now())
+}
+
+model Referral {
+    id          Int      @id @default(autoincrement())
+    referrer    User     @relation("ReferralsMade", fields: [referrerId], references: [id])
+    referrerId  Int
+    referred    User     @relation("ReferralsReceived", fields: [referredId], references: [id])
+    referredId  Int
+    bonusAmount Int      @default(0)
+    status      String   @default("pending")
+    createdAt   DateTime @default(now())
+}
+
+model UserBank {
+    id            Int    @id @default(autoincrement())
+    user          User   @relation(fields: [userId], references: [id])
+    userId        Int    @unique
+    accountName   String
+    accountNumber String
+    bankName      String
+}
+
+model DepositMethod {
+    id            Int     @id @default(autoincrement())
+    methodName    String  @unique
+    isEnabled     Boolean @default(true)
+    accountName   String?
+    accountNumber String?
+    bankName      String?
+    btcAddress    String?
+    usdtAddress   String?
+    ethAddress    String?
+}
+
+model Settings {
+    id                 Int     @id @default(autoincrement())
+    registrationBonus  Int     @default(500)
+    dailyCheckinBonus  Int     @default(50)
+    referralPercent    Int     @default(10)
+    minDeposit         Int     @default(1000)
+    minWithdrawal      Int     @default(1000)
+    aboutUs            String  @default("")
+    supportTelegramUrl String?
+    supportWhatsappUrl String?
+    supportCustomerUrl String?
+}
