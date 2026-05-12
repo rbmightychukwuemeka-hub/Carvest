@@ -11,18 +11,18 @@ export const Layout = () => {
       <header className="bg-primary-800 text-white p-4">
         <div className="container mx-auto px-4 py-2 flex justify-between">
           <Link to="/">
-            <h1 className="text-xl2 font-semibold">Carvest</h1>
+            <h1 className="text-2xl font-semibold">Carvest</h1>
           </Link>
           { user ? (
             <span>
-              Hi, {user.identities.username?.id}!{' '}
-              <button onClick={logout} className="text-xl2 underline">
+              Hi, {user.identities?.username?.id || 'User'}!{' '}
+              <button onClick={logout} className="text-2xl underline">
                 (Log out)
               </button>
             </span>
           ) : (
             <Link to="/login">
-              <h1 className="text-xl2 underline">Log in</h1>
+              <h1 className="text-2xl underline">Log in</h1>
             </Link>
           )}
         </div>
